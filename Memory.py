@@ -1,21 +1,25 @@
-from random import *  # Importar todas las funciones del módulo random
-from turtle import *  # Importar todas las funciones del módulo turtle
-from freegames import path  # Importar la función path del módulo freegames
+from random import *
+from turtle import *
+from freegames import path
 
-# Cargar la imagen del auto
 car = path('car.gif')
 
-# Crear una lista de 32 pares de números (del 0 al 31) para las fichas
-tiles = list(range(32)) * 2  # Duplicamos los números para formar pares
+# Lista de colores (duplicados para hacer pares)
+color_names = [
+    'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan',
+    'brown', 'magenta', 'lime', 'indigo', 'violet', 'gold', 'silver', 'teal',
+    'navy', 'maroon', 'olive', 'coral', 'turquoise', 'salmon', 'plum', 'beige',
+    'lavender', 'khaki', 'chartreuse', 'crimson', 'peru', 'orchid', 'azure', 'tan',
+] 
 
+# Asegurar que haya 64 colores (duplicados y mezclados)
+tiles = color_names * 2
+shuffle(tiles)
 # Definir el estado del juego con una marca inicial en None y un contador de taps
-state = {'mark': None, 'taps': 0}  
+state = {'mark': None, 'taps': 0}
+hide = [True] * 64
 
-# Lista de 64 elementos booleanos para ocultar o mostrar las fichas
-hide = [True] * 64  
-
-# Función para dibujar un cuadrado blanco con borde negro en la posición (x, y)
-def square(x, y):
+def square(x, y): # Función para dibujar un cuadrado blanco con borde negro en la posición (x, y)
     up()
     goto(x, y)
     down()
@@ -26,68 +30,51 @@ def square(x, y):
         left(90)
     end_fill()
 
-# Función para convertir coordenadas (x, y) a un índice de la lista de fichas
-def index(x, y):
+def index(x, y): # Función para convertir el índice de la ficha a coordenadas (x, y)
     return int((x + 200) // 50 + ((y + 200) // 50) * 8)
 
-# Función para convertir el índice de la ficha a coordenadas (x, y)
 def xy(count):
     return (count % 8) * 50 - 200, (count // 8) * 50 - 200
 
-# Función que maneja los clics en el tablero
-def tap(x, y):
-    spot = index(x, y)  # Obtener el índice de la ficha seleccionada
+def tap(x, y): # Función que maneja los clics en el tablero
+    spot = index(x, y) # Obtener el índice de la ficha seleccionada
     mark = state['mark']  # Obtener la ficha previamente seleccionada
     state['taps'] += 1  # Incrementar el contador de taps
 
-    # Si no hay ficha seleccionada, si se hace clic en la misma ficha, o si las fichas no coinciden
-    if mark is None or mark == spot or tiles[mark] != tiles[spot]:
-        state['mark'] = spot  # Marcar la ficha actual
+    if mark is None or mark == spot or tiles[mark] != tiles[spot]:  # Si no hay ficha seleccionada, si se hace clic en la misma ficha, o si las fichas no coinciden
+        state['mark'] = spot
     else:
-        hide[spot] = False  # Revelar la ficha actual
-        hide[mark] = False  # Revelar la ficha anterior
-        state['mark'] = None  # Resetear la marca
+        hide[spot] = False
+        hide[mark] = False
+        state['mark'] = None
 
-# Función para verificar si todas las fichas han sido reveladas
-def all_revealed():
+def all_revealed(): # Función para verificar si todas las fichas han sido reveladas
     return all(not h for h in hide)
 
-# Función para dibujar la imagen de fondo y las fichas
-def draw():
+def draw(): # Función para dibujar la imagen de fondo y las fichas
     clear()
     goto(0, 0)
     shape(car)
     stamp()
-
-    # Dibujar los cuadros de las fichas ocultas
-    for count in range(64):
+ 
+    for count in range(64): # Dibujar los cuadros de las fichas ocultas
         if hide[count]:
             x, y = xy(count)
             square(x, y)
-    
+
     mark = state['mark']
 
-    # Dibujar el número en la ficha seleccionada
     if mark is not None and hide[mark]:
         x, y = xy(mark)
         up()
-        num = str(tiles[mark])  # Convertir el número en string
-        if len(num) == 1:
-            goto(x + 25, y + 3)  # Ajuste para un solo dígito
-            font_size = 30
-        else:
-            goto(x + 25, y + 5)  # Ajuste para dos dígitos
-            font_size = 24
-        color('black')
-        write(num, font=('Arial', font_size, 'bold'), align='center')
+        goto(x + 25, y + 25)
+        dot(40, tiles[mark])  # Mostrar un punto grande del color
 
-    # Mostrar el número de taps
     up()
     goto(-180, 180)
     color('black')
     write(f'Taps: {state["taps"]}', font=('Arial', 16, 'bold'))
-    
-    # Verificar si el juego ha terminado
+
     if all_revealed():
         goto(-100, 0)
         write('GANASTE!', font=('Arial', 30, 'bold'))
@@ -95,15 +82,12 @@ def draw():
         return
 
     update()
-    ontimer(draw, 100)  # Redibujar cada 100 ms
+    ontimer(draw, 100)
 
-shuffle(tiles)  # Mezclar las fichas
-setup(420, 420, 370, 0)  # Configurar la ventana del juego
-addshape(car)  # Agregar la imagen del auto como una forma
+setup(420, 420, 370, 0)
+addshape(car)
 hideturtle()
-tracer(False)  # Desactivar animación automática para optimización
-onscreenclick(tap)  # Detectar clics en pantalla y ejecutar tap
-
-# Iniciar el juego
+tracer(False)
+onscreenclick(tap)
 draw()
 done()
